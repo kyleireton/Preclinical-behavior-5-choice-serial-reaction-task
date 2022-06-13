@@ -1,4 +1,5 @@
-# RMarkdown pipelines for end-to-end wrangling, visualization, and analysis of preclinical animal behavior data.
+## RMarkdown pipelines for end-to-end wrangling, visualization, and analysis of preclinical animal behavior data.
+
 
 
 # Before analysis, we need to read in and wrangle raw behavior data from our animal studies
