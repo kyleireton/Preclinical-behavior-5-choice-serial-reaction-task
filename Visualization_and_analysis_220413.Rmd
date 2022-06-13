@@ -1,0 +1,1604 @@
+---
+title: "training_MIA_pilot"
+output: html_notebook
+---
+
+```{r}
+
+library(readr)
+library(dplyr)
+library(stringr)
+library(magrittr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+
+library(ggrepel)
+
+index <- function(x){
+  as.integer(row.names(x))
+}
+
+```
+
+```{r}
+train = read_csv("C:/Users/kylei/OneDrive/Zephyrus/_MIA/old/220413_MIA_train_old_crunched.csv") %>% 
+  mutate(
+    
+    Order = case_when(
+      
+        ID == "18-1"|ID == "18-2"|
+        ID == "19-1"|ID == "19-2" ~ 1,
+      
+      ID == "14-1"|ID == "14-2"|
+        ID == "15-1"|ID == "15-2"|
+        ID == "16-1"|ID == "16-2"|
+        ID == "17-1"|ID == "17-2" ~ 2,
+      
+      ID == "1-1"|ID == "1-2"|
+        ID == "2-1"|ID == "2-2"|
+        ID == "3-1"|ID == "3-2"|
+        ID == "4-1"|ID == "4-2" ~ 3,
+        
+        ID == "5-1"|ID == "6-1"|
+        ID == "7-1"|ID == "7-2"|
+        ID == "8-1"|ID == "8-2"|
+        ID == "9-1"|ID == "9-2" ~ 4,
+        
+        ID == "10-1"|ID == "10-2"|
+        ID == "11-1"|ID == "11-2"|
+        ID == "12-1"|ID == "12-2"|
+        ID == "13-1"|ID == "13-2" ~ 5
+      
+      ),
+    
+    Chamber = case_when(
+      
+      ID == "18-1" ~ 5, ID == "18-2" ~ 6,
+        ID == "19-1" ~ 7, ID == "19-2" ~ 8,
+      
+      ID == "14-1" ~ 1, ID == "14-2" ~ 2,
+        ID == "15-1" ~ 3, ID == "15-2" ~ 4,
+        ID == "16-1" ~ 5, ID == "16-2" ~ 6,
+        ID == "17-1" ~ 7, ID == "17-2" ~ 8,
+      
+      ID == "1-1" ~ 1, ID == "1-2" ~ 2,
+        ID == "2-1" ~ 3, ID == "2-2" ~ 4,
+        ID == "3-1" ~ 5, ID == "3-2" ~ 6,
+        ID == "4-1" ~ 7, ID == "4-2" ~ 8,
+        
+        ID == "5-1" ~ 1, ID == "6-1" ~ 2,
+        ID == "7-1" ~ 3, ID == "7-2" ~ 4,
+        ID == "8-1" ~ 5, ID == "8-2" ~ 6,
+        ID == "9-1" ~ 7, ID == "9-2" ~ 8,
+        
+        ID == "10-1" ~ 1, ID == "10-2" ~ 2,
+        ID == "11-1" ~ 3, ID == "11-2" ~ 4,
+        ID == "12-1" ~ 5, ID == "12-2" ~ 6,
+        ID == "13-1" ~ 7, ID == "13-2" ~ 8,
+      
+      ),
+    
+    Dam = case_when(
+      
+      ID == "18-1"|ID == "18-2" ~ 6465,
+        ID == "19-1"|ID == "19-2" ~ 6473,
+      
+      ID == "14-1"|ID == "14-2" ~ 6465,
+        ID == "15-1"|ID == "15-2"~ 6327,
+        ID == "16-1"|ID == "16-2"~ 6327,
+        ID == "17-1"|ID == "17-2" ~ 6313,
+      
+      ID == "1-1"|ID == "1-2" ~ 6309,
+        ID == "2-1"|ID == "2-2" ~ 6309,
+        ID == "3-1"|ID == "3-2" ~ 6310,
+        ID == "4-1"|ID == "4-2" ~ 6310,
+        
+        ID == "5-1"|ID == "6-1" ~ 6333,
+        ID == "7-1"|ID == "7-2" ~ 6333,
+        ID == "8-1"|ID == "8-2" ~ 6313,
+        ID == "9-1"|ID == "9-2" ~ 6328,
+        
+        ID == "10-1"|ID == "10-2" ~ 6328,
+        ID == "11-1"|ID == "11-2" ~ 6469,
+        ID == "12-1"|ID == "12-2" ~ 6473,
+        ID == "13-1"|ID == "13-2" ~ 6790
+      
+      ),
+    
+    Sex = case_when(
+      
+      ID == "18-1"|ID == "18-2" ~ "M",
+        ID == "19-1"|ID == "19-2" ~ "F",
+      
+      ID == "14-1"|ID == "14-2" ~ "F",
+        ID == "15-1"|ID == "15-2"~ "F",
+        ID == "16-1"|ID == "16-2"~ "M",
+        ID == "17-1"|ID == "17-2" ~ "F",
+      
+      ID == "1-1"|ID == "1-2" ~ "M",
+        ID == "2-1"|ID == "2-2" ~ "F",
+        ID == "3-1"|ID == "3-2" ~ "M",
+        ID == "4-1"|ID == "4-2" ~ "F",
+        
+        ID == "5-1"|ID == "6-1" ~ "M",
+        ID == "7-1"|ID == "7-2" ~ "F",
+        ID == "8-1"|ID == "8-2" ~ "M",
+        ID == "9-1"|ID == "9-2" ~ "F",
+        
+        ID == "10-1"|ID == "10-2" ~ "M",
+        ID == "11-1"|ID == "11-2" ~ "M",
+        ID == "12-1"|ID == "12-2" ~ "M",
+        ID == "13-1"|ID == "13-2" ~ "F"
+      ),
+    
+    BIR = case_when(
+      
+      ID == "18-1"|ID == "18-2" ~ "Med",
+        ID == "19-1"|ID == "19-2" ~ "Med",
+      
+      ID == "14-1"|ID == "14-2" ~ "Med",
+        ID == "15-1"|ID == "15-2"~ "High",
+        ID == "16-1"|ID == "16-2"~ "High",
+        ID == "17-1"|ID == "17-2" ~ "Med",
+      
+      ID == "1-1"|ID == "1-2" ~ "Med",
+        ID == "2-1"|ID == "2-2" ~ "Med",
+        ID == "3-1"|ID == "3-2" ~ "Med",
+        ID == "4-1"|ID == "4-2" ~ "Med",
+        
+        ID == "5-1"|ID == "6-1" ~ "High",
+        ID == "7-1"|ID == "7-2" ~ "High",
+        ID == "8-1"|ID == "8-2" ~ "Med",
+        ID == "9-1"|ID == "9-2" ~ "High",
+        
+        ID == "10-1"|ID == "10-2" ~ "High",
+        ID == "11-1"|ID == "11-2" ~ "Med",
+        ID == "12-1"|ID == "12-2" ~ "Med",
+        ID == "13-1"|ID == "13-2" ~ "Med"
+      
+      ),
+    
+    nBR = case_when(
+      
+      ID == "18-1"|ID == "18-2" ~ "Med",
+        ID == "19-1"|ID == "19-2" ~ "Med",
+      
+      ID == "14-1"|ID == "14-2" ~ "Med",
+        ID == "15-1"|ID == "15-2"~ "High",
+        ID == "16-1"|ID == "16-2"~ "High",
+        ID == "17-1"|ID == "17-2" ~ "Med",
+      
+      ID == "1-1"|ID == "1-2" ~ "Med",
+        ID == "2-1"|ID == "2-2" ~ "Med",
+        ID == "3-1"|ID == "3-2" ~ "Med",
+        ID == "4-1"|ID == "4-2" ~ "Med",
+        
+        ID == "5-1"|ID == "6-1" ~ "High",
+        ID == "7-1"|ID == "7-2" ~ "High",
+        ID == "8-1"|ID == "8-2" ~ "Med",
+        ID == "9-1"|ID == "9-2" ~ "High",
+        
+        ID == "10-1"|ID == "10-2" ~ "High",
+        ID == "11-1"|ID == "11-2" ~ "Low",
+        ID == "12-1"|ID == "12-2" ~ "Med",
+        ID == "13-1"|ID == "13-2" ~ "Low"
+      
+      ),
+    
+    pIC = case_when(
+      
+      ID == "18-1"|ID == "18-2" ~ 0,
+        ID == "19-1"|ID == "19-2" ~ 0,
+      
+      ID == "14-1"|ID == "14-2" ~ 0,
+        ID == "15-1"|ID == "15-2"~ 30,
+        ID == "16-1"|ID == "16-2"~ 30,
+        ID == "17-1"|ID == "17-2" ~ 30,
+      
+      ID == "1-1"|ID == "1-2" ~ 30,
+        ID == "2-1"|ID == "2-2" ~ 30,
+        ID == "3-1"|ID == "3-2" ~ 30,
+        ID == "4-1"|ID == "4-2" ~ 30,
+        
+        ID == "5-1"|ID == "6-1" ~ 30,
+        ID == "7-1"|ID == "7-2" ~ 30,
+        ID == "8-1"|ID == "8-2" ~ 30,
+        ID == "9-1"|ID == "9-2" ~ 30,
+        
+        ID == "10-1"|ID == "10-2" ~ 30,
+        ID == "11-1"|ID == "11-2" ~ 0,
+        ID == "12-1"|ID == "12-2" ~ 0,
+        ID == "13-1"|ID == "13-2" ~ 0
+      
+      )
+    
+  ) %>% 
+  
+  group_by(ID) %>% 
+  
+  mutate(Session = match(Date, unique(Date))) %>% 
+  
+  ungroup()
+```
+
+```{r}
+train$ID <- factor(train$ID, levels = c( "1-1", "1-2",
+         "2-1", "2-2",
+         "3-1", "3-2",
+         "4-1", "4-2",
+        
+         "5-1", "6-1",
+         "7-1", "7-2",
+         "8-1", "8-2",
+         "9-1", "9-2",
+        
+         "10-1", "10-2",
+         "11-1", "11-2",
+         "12-1", "12-2",
+         "13-1", "13-2",
+         
+         "14-1", "14-2",
+         "15-1", "15-2",
+         "16-1", "16-2",
+         "17-1", "17-2",
+         
+         "18-1", "18-2",
+         "19-1", "19-2"))
+
+train$Dam <- as.factor(train$Dam)
+```
+
+```{r}
+
+# train = train %>% 
+#   filter(ID != "4-2",
+#          ID != "11-1",
+#          ID != "11-2")
+
+```
+
+```{r, fig.width=12, fig.height=10}
+curves = train %>%
+  
+  group_by(BIR, pIC, Dam, Sex, ID, Session) %>%
+  
+  slice(n()) %>% 
+  
+  # ungroup() %>% group_by(BIR, pIC, Dam, Session) %>%
+  # 
+  # summarise(
+  #   Stage = mean(Stage)
+  # ) %>%
+  
+  ungroup() 
+```
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(curves,
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC),
+           label = Dam
+           )) +
+  
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.25) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.1,
+              width = 0.1) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by individual") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+
+  theme_classic() +
+  
+  theme(panel.grid.major.y = element_line(color = "gray",
+                                          size = 1,
+                                          linetype = 2))
+
+```
+
+```{r}
+
+summary(
+  aov(
+    Stage ~ Session*interaction(BIR, pIC),
+    data = curves
+    )
+  )
+
+```
+
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(curves,
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC),
+           label = Dam
+           )) +
+  
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.15) +
+  
+  geom_smooth(aes(color = interaction(BIR, pIC)),
+              method = "glm", fullrange = TRUE,
+              alpha = 0.33) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.1,
+              width = 0.1) +
+  
+  xlim(c(0, 50)) +
+  ylim(c(0, 6)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by individual") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+
+  theme_classic() +
+  
+  theme(panel.grid.major.y = element_line(color = "gray",
+                                          size = 1,
+                                          linetype = 2))
+
+```
+
+```{r, fig.width=12, fig.height=10}
+damcurves = train %>%
+  
+  group_by(Sex, nBR, BIR, pIC, Dam, ID, Session) %>%
+  
+  slice(n()) %>% 
+  
+  ungroup() %>% group_by(Sex, nBR, BIR, pIC, Dam, Session) %>%
+  
+  summarise(
+    Stage = mean(Stage)
+  ) %>%
+  
+  ungroup() 
+```
+
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves,
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.25) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.05,
+              width = 0.05) +
+  
+  # coord_cartesian(ylim = c(0, 1.5)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+  
+  # coord_cartesian(ylim = c(0, 5.25)
+  #                 ,
+  #                 xlim = c(0, 34)
+  #                 ) +
+
+  theme_classic() +
+  
+  theme(panel.grid.major.y = element_line(color = "gray",
+                                          size = 1,
+                                          linetype = 2))
+
+
+```
+
+```{r}
+
+summary(
+  aov(
+    Stage ~ Session*interaction(BIR, pIC),
+    data = damcurves
+    )
+  )
+
+```
+
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves,
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+  
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.15) +
+  
+  geom_smooth(aes(color = interaction(BIR, pIC)),
+              method = "glm", fullrange = TRUE,
+              alpha = 0.33) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.1,
+              width = 0.1) +
+  
+  xlim(c(0, 50)) +
+  ylim(c(0, 6)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+  
+  # coord_cartesian(ylim = c(0, 5.25)
+  #                 ,
+  #                 xlim = c(0, 34)
+  #                 ) +
+
+  theme_classic() +
+  
+  theme(panel.grid.major.y = element_line(color = "gray",
+                                          size = 1,
+                                          linetype = 2))
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves,
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.25) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.05,
+              width = 0.05) +
+  
+  # coord_cartesian(ylim = c(0, 1.5)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+  
+  # coord_cartesian(ylim = c(0, 5.25)
+  #                 ,
+  #                 xlim = c(0, 34)
+  #                 ) +
+
+  theme_classic()
+
+
+```
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves %>% filter(Sex == "M"),
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.25) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.05,
+              width = 0.05) +
+  
+  # coord_cartesian(ylim = c(0, 1.5)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+  
+  # coord_cartesian(ylim = c(0, 5.25)
+  #                 ,
+  #                 xlim = c(0, 34)
+  #                 ) +
+
+  theme_classic()
+
+
+```
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves %>% filter(Sex == "F"),
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.25) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.05,
+              width = 0.05) +
+  
+  # coord_cartesian(ylim = c(0, 1.5)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+  
+  # coord_cartesian(ylim = c(0, 5.25)
+  #                 ,
+  #                 xlim = c(0, 34)
+  #                 ) +
+
+  theme_classic()
+
+
+```
+
+```{r}
+
+summary(
+  aov(
+    Stage ~ Session*interaction(BIR, pIC),
+    data = damcurves %>% filter(Sex == "M")
+    )
+  )
+
+summary(
+  aov(
+    Stage ~ Session*interaction(BIR, pIC),
+    data = damcurves %>% filter(Sex == "F")
+    )
+  )
+
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves %>% filter(Sex == "M"),
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.15) +
+  
+  geom_smooth(aes(color = interaction(BIR, pIC)),
+              method = "glm", fullrange = TRUE,
+              alpha = 0.33) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.1,
+              width = 0.1) +
+  
+  xlim(c(0, 50)) +
+  ylim(c(0, 6)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter (Males only)") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+
+  theme_classic()
+
+
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ 
+ggplot(damcurves %>% filter(Sex == "F"),
+
+       aes(Session,
+           Stage,
+           fill = interaction(BIR, pIC)
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(color = interaction(BIR, pIC)),
+               fun = "mean", geom = "line",
+               size = 1) +
+
+  stat_summary(fun.data = "mean_se", geom = "ribbon",
+               alpha = 0.15) +
+  
+  geom_smooth(aes(color = interaction(BIR, pIC)),
+              method = "glm", fullrange = TRUE,
+              alpha = 0.33) +
+
+  geom_jitter(aes(color = interaction(BIR, pIC)),
+              height = 0.1,
+              width = 0.1) +
+  
+  xlim(c(0, 50)) +
+  ylim(c(0, 6)) +
+  
+  scale_color_manual(values = c("dodgerblue", "green", "orange"))+
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Learning curves: by litter (Females only)") +
+  ylab("Stage of training") +
+  xlab("Session #") +
+
+  theme_classic()
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+damsexcurves = train %>%
+  
+  group_by(BIR, pIC, Dam, Sex, ID, Session) %>%
+  
+  slice(n()) %>% 
+  
+  ungroup() %>% group_by(BIR, pIC, Dam, Sex, Session) %>%
+  
+  summarise(
+    Stage = mean(Stage)
+  ) %>%
+  
+  ungroup() 
+```
+
+```{r, fig.width=12, fig.height=10}
+damstageslice0 = train %>%
+  
+  filter(ID != "16-2",
+         ID != "4-2",
+         ID != "5-1") %>% 
+  
+  filter(Stage == 0) %>% 
+  
+  group_by(Sex, nBR, BIR, pIC, Dam, ID, Session) %>%
+  
+  slice(n()) %>%
+  
+  ungroup() %>% group_by(Sex, nBR, BIR, pIC, Dam, ID) %>% 
+  
+  summarise(
+    Session = max(Session)
+  ) %>%
+  
+  ungroup() %>% 
+  
+  mutate(Group = case_when(
+    BIR == "High" & pIC == 30 ~ "x High-30",
+    BIR == "Med" & pIC == 30 ~ "Med-30",
+    pIC == 0 ~ "Control",
+  ))
+```
+
+```{r, fig.width=10, fig.height=8}
+ 
+ggplot(damstageslice0,
+
+       aes(Group,
+           Session,
+           fill = Group
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(fill = Group),
+               fun = "mean", geom = "col",
+               alpha = 0.25) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2) +
+
+  geom_jitter(aes(color = Dam),
+              height = 0.0,
+              width = 0.1) +
+  
+  # scale_color_manual(values = c("dodgerblue", "orange", "green2"))+
+  scale_fill_manual(values = c("dodgerblue", "orange", "green"))+
+
+  ggtitle("Sessions at stage 0: individuals") +
+  ylab("# of sessions") +
+  xlab("Group") +
+
+  theme_classic() +
+  
+  theme(axis.text = element_text(size = 14),
+        strip.text.x = element_text(size = 16),
+        title = element_text(size = 16)
+        )
+
+```
+
+```{r}
+
+summary(aov(
+  Session ~ Group,
+  data = damstageslice0 %>% filter(Sex == "M")
+))
+
+summary(aov(
+  Session ~ Group,
+  data = damstageslice0 %>% filter(Sex == "F")
+))
+
+```
+
+```{r, fig.width=10, fig.height=8}
+damsliced0 = damstageslice0 %>% 
+         group_by(Sex, Group, Dam) %>% 
+         summarise(Session = mean(Session)) %>% 
+                     ungroup()
+```
+
+
+```{r, fig.width=10, fig.height=8}
+ggplot(damsliced0,
+
+       aes(Group,
+           Session,
+           fill = Group
+           )) +
+  
+  facet_wrap(~ Sex) +
+
+  stat_summary(aes(fill = Group),
+               fun = "mean", geom = "col",
+               alpha = 0.25) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2) +
+
+  geom_jitter(aes(color = Dam),
+              height = 0.0,
+              width = 0.1) +
+  
+  # scale_color_manual(values = c("dodgerblue", "orange", "green2"))+
+  scale_fill_manual(values = c("dodgerblue", "orange", "green"))+
+
+  ggtitle("Sessions at stage 0: per litter") +
+  ylab("# of sessions") +
+  xlab("Group") +
+
+  theme_classic() +
+  
+  theme(axis.text = element_text(size = 14),
+        strip.text.x = element_text(size = 16),
+        title = element_text(size = 16)
+        )
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+promotion5 = train %>%
+  
+  filter(Stage == 5) %>%
+  
+  group_by(BIR, pIC, Dam, ID, Session) %>%
+  
+  summarise(.Cor = sum(Response == "Correct") / 100 ,
+            
+            Corr = sum(Response == "Correct") / max(Trials),
+            Accu = sum(Response == "Correct") /
+                     (sum(Response == "Correct") + sum(Response == "Incorrect")),
+            Omis = sum(Response == "Omission") / max(Trials),
+            Prem = sum(Response == "Premature") / max(Trials),
+            Pers = sum(Response == "Perseverative") / max(Trials),
+            Time = sum(Response == "Timeout") / max(Trials)
+            
+            ) %>%
+  
+  pivot_longer(cols = .Cor:Time) %>% 
+  
+  ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(promotion5,
+
+       aes(name,
+           value,
+           fill = interaction(BIR, pIC))
+
+       ) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+
+  geom_hline(yintercept = 0.5,
+             color = "red") +
+  
+  geom_hline(yintercept = 0.80,
+             color = "blue") +
+
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+
+  geom_jitter(aes(color = ID),
+              size = 1,
+              width = 0.05,
+              height = 0) +
+  
+  coord_cartesian(ylim = c(0 , 1)) +
+  
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+
+  ggtitle("Stage 5: latest session parameters") +
+  ylab("Proportion") +
+  xlab("Latest Session") +
+
+  theme_classic()
+
+```
+
+```{r, fig.width=12, fig.height=10}
+Chamber_loc5 = train %>% 
+         filter(Stage == 5) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, ID, Session, Port) %>% 
+         summarise(Reward = n(),
+                   Session = Session) %>%
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_loc5,
+       
+       aes(Port,
+           Reward,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+  
+  ggtitle("rewards during stage 5") +
+  ylab("Reward #") +
+  xlab("Port location") +
+  
+  theme_classic()
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+Chamber_acc5 = train %>% 
+         filter(Stage == 5) %>% 
+         filter(Response == "Correct"|
+                Response == "Incorrect"|
+                Response == "Omission") %>% 
+  
+         group_by(BIR, pIC, ID, Session, Target) %>% 
+         summarise(
+           Acc = sum(Response == "Correct") / 
+             (sum(Response == "Correct") + sum(Response == "Incorrect"))
+         ) %>%
+         # slice(n()) %>% 
+         ungroup()
+```
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_acc5,
+       
+       aes(Target,
+           Acc,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+  
+  ggtitle("accuracy during stage 5") +
+  ylab("Acc %") +
+  xlab("Target location") +
+  
+  theme_classic()
+
+
+```
+
+
+
+
+```{r, fig.width=12, fig.height=10}
+promotion4 = train %>%
+  
+  filter(Stage == 4) %>%
+  
+  group_by(BIR, pIC, Dam, ID, Session) %>%
+  
+  summarise(.Cor = sum(Response == "Correct") / 100 ,
+            
+            Corr = sum(Response == "Correct") / max(Trials),
+            Accu = sum(Response == "Correct") /
+                     (sum(Response == "Correct") + sum(Response == "Incorrect")),
+            Omis = sum(Response == "Omission") / max(Trials),
+            Prem = sum(Response == "Premature") / max(Trials),
+            Pers = sum(Response == "Perseverative") / max(Trials),
+            Time = sum(Response == "Timeout") / max(Trials)
+            
+            ) %>%
+  
+  pivot_longer(cols = .Cor:Time) %>% 
+  
+  ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(promotion4,
+
+       aes(name,
+           value,
+           fill = interaction(BIR, pIC))
+
+       ) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+
+  geom_hline(yintercept = 0.5,
+             color = "red") +
+  
+  geom_hline(yintercept = 0.80,
+             color = "blue") +
+
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+
+  geom_point(aes(color = ID),
+              size = 1) +
+  
+  coord_cartesian(ylim = c(0 , 1)) +
+  
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+
+  ggtitle("Stage 4: latest session parameters") +
+  ylab("Proportion") +
+  xlab("Latest Session") +
+
+  theme_classic()
+
+```
+
+```{r, fig.width=12, fig.height=10}
+Chamber_loc4 = train %>% 
+         filter(Stage == 4) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, ID, Session, Port) %>% 
+         summarise(Reward = n(),
+                   Session = Session) %>%
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_loc4,
+       
+       aes(Port,
+           Reward,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+  
+  ggtitle("rewards during stage 4") +
+  ylab("Reward #") +
+  xlab("Port location") +
+  
+  theme_classic()
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+Chamber_acc4 = train %>% 
+         filter(Stage == 4) %>% 
+         filter(Response == "Correct"|
+                Response == "Incorrect"|
+                Response == "Omission") %>% 
+  
+         group_by(BIR, pIC, ID, Session, Target) %>% 
+         summarise(
+           Acc = sum(Response == "Correct") / 
+             (sum(Response == "Correct") + sum(Response == "Incorrect"))
+         ) %>%
+         # slice(n()) %>% 
+         ungroup()
+```
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_acc4,
+       
+       aes(Target,
+           Acc,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+  
+  ggtitle("accuracy during stage 4") +
+  ylab("Acc %") +
+  xlab("Target location") +
+  
+  theme_classic()
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+promotion3 = train %>%
+  
+  filter(Stage == 3) %>%
+  
+  group_by(BIR, pIC, Dam, ID, Session) %>%
+  
+  summarise(.Cor = sum(Response == "Correct") / 100 ,
+            
+            Corr = sum(Response == "Correct") / max(Trials),
+            Accu = sum(Response == "Correct") /
+                     (sum(Response == "Correct") + sum(Response == "Incorrect")),
+            Omis = sum(Response == "Omission") / max(Trials),
+            Prem = sum(Response == "Premature") / max(Trials),
+            Pers = sum(Response == "Perseverative") / max(Trials),
+            Time = sum(Response == "Timeout") / max(Trials)
+            
+            ) %>%
+  
+  pivot_longer(cols = .Cor:Time) %>% 
+  
+  ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(promotion3,
+
+       aes(name,
+           value,
+           fill = interaction(BIR, pIC))
+
+       ) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+
+  geom_hline(yintercept = 0.5,
+             color = "red") +
+  
+  geom_hline(yintercept = 0.80,
+             color = "blue") +
+
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+
+  geom_point(aes(color = ID),
+              size = 1) +
+  
+  coord_cartesian(ylim = c(0 , 1)) +
+  
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Stage 3: latest session parameters") +
+  ylab("Proportion") +
+  xlab("Latest Session") +
+
+  theme_classic()
+
+```
+
+```{r, fig.width=12, fig.height=10}
+Chamber_loc3 = train %>% 
+         filter(Stage == 3) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, ID, Session, Port) %>% 
+         summarise(Reward = n(),
+                   Session = Session) %>%
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_loc3,
+       
+       aes(Port,
+           Reward,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+  
+  ggtitle("rewards during stage 3") +
+  ylab("Reward #") +
+  xlab("Port location") +
+  
+  theme_classic()
+
+
+```
+```{r, fig.width=12, fig.height=10}
+Chamber_acc3 = train %>% 
+         filter(Stage == 3) %>% 
+         filter(Response == "Correct"|
+                Response == "Incorrect"|
+                Response == "Omission") %>% 
+  
+         group_by(BIR, pIC, ID, Session, Target) %>% 
+         summarise(
+           Acc = sum(Response == "Correct") / 
+             (sum(Response == "Correct") + sum(Response == "Incorrect"))
+         ) %>%
+         # slice(n()) %>% 
+         ungroup()
+```
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_acc3,
+       
+       aes(Target,
+           Acc,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue",
+                               "green", "orange"))+
+  
+  ggtitle("accuracy during stage 3") +
+  ylab("Acc %") +
+  xlab("Target location") +
+  
+  theme_classic()
+
+
+```
+
+
+```{r, fig.width=12, fig.height=10}
+promotion2 = train %>%
+  
+  filter(Stage == 2) %>%
+  
+  group_by(BIR, pIC, Dam, ID, Session) %>%
+  
+  summarise(.Cor = sum(Response == "Correct") / 100 ,
+            
+            Corr = sum(Response == "Correct") / max(Trials),
+            Accu = sum(Response == "Correct") /
+                     (sum(Response == "Correct") + sum(Response == "Incorrect")),
+            Omis = sum(Response == "Omission") / max(Trials),
+            Prem = sum(Response == "Premature") / max(Trials),
+            Pers = sum(Response == "Perseverative") / max(Trials),
+            Time = sum(Response == "Timeout") / max(Trials)
+            
+            ) %>%
+  
+  pivot_longer(cols = .Cor:Time) %>% 
+  
+  ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(promotion2,
+
+       aes(name,
+           value,
+           fill = interaction(BIR, pIC))
+
+       ) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+
+  geom_hline(yintercept = 0.5,
+             color = "red") +
+  
+  geom_hline(yintercept = 0.80,
+             color = "blue") +
+
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+
+  geom_point(aes(color = ID),
+              size = 1) +
+  
+  coord_cartesian(ylim = c(0 , 1)) +
+  
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Stage 2: session parameters") +
+  ylab("Proportion") +
+  xlab("Latest Session") +
+
+  theme_classic()
+
+```
+
+```{r, fig.width=12, fig.height=10}
+Chamber_loc2 = train %>% 
+         filter(Stage == 2) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, ID, Session, Port) %>% 
+         summarise(Reward = n(),
+                   Session = Session) %>%
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_loc2,
+       
+       aes(Port,
+           Reward,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+  
+  ggtitle("rewards during stage2") +
+  ylab("Reward #") +
+  xlab("Port location") +
+  
+  theme_classic()
+
+
+```
+
+
+```{r, fig.width=12, fig.height=10}
+promotion1 = train %>%
+  
+  filter(Stage == 1) %>%
+  
+  group_by(BIR, pIC, Dam, ID, Session) %>%
+  
+  summarise(.Cor = sum(Response == "Correct") / 100 ,
+            
+            Corr = sum(Response == "Correct") / max(Trials),
+            Accu = sum(Response == "Correct") /
+                     (sum(Response == "Correct") + sum(Response == "Incorrect")),
+            Omis = sum(Response == "Omission") / max(Trials),
+            Prem = sum(Response == "Premature") / max(Trials),
+            Pers = sum(Response == "Perseverative") / max(Trials),
+            Time = sum(Response == "Timeout") / max(Trials)
+            
+            ) %>%
+  
+  pivot_longer(cols = .Cor:Time) %>% 
+  
+  ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+
+ggplot(promotion1,
+
+       aes(name,
+           value,
+           fill = interaction(BIR, pIC))
+
+       ) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+
+  geom_hline(yintercept = 0.5,
+             color = "red") +
+  
+  geom_hline(yintercept = 0.80,
+             color = "blue") +
+
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+
+  geom_point(aes(color = ID),
+              size = 1) +
+  
+  coord_cartesian(ylim = c(0 , 1)) +
+  
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+
+  ggtitle("Stage 1: session parameters") +
+  ylab("Proportion") +
+  xlab("Latest Session") +
+
+  theme_classic()
+
+```
+```{r, fig.width=12, fig.height=10}
+Chamber_loc1 = train %>% 
+         filter(Stage == 1) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, ID, Session, Port) %>% 
+         summarise(Reward = n(),
+                   Session = Session) %>%
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_loc1,
+       
+       aes(Port,
+           Reward,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+  
+  ggtitle("rewards during stage 1") +
+  ylab("Reward #") +
+  xlab("Port location") +
+  
+  theme_classic()
+
+
+```
+
+```{r, fig.width=12, fig.height=10}
+promotion0 = train %>% 
+         filter(Stage == 0) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, Dam, ID, Session) %>%
+         summarise(Reward = n(),
+                   Session = Session) %>%
+        arrange(Dam) %>% 
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+Chamber_loc0 = train %>% 
+         filter(Stage == 0) %>% 
+         filter(Response == "Correct") %>% 
+         group_by(BIR, pIC, ID, Session, Port) %>% 
+         summarise(Reward = n(),
+                   Session = Session) %>%
+         slice(n()) %>% 
+         ungroup()
+```
+
+
+```{r, fig.width=12, fig.height=10}
+ggplot(Chamber_loc0,
+       
+       aes(Port,
+           Reward,
+           fill = interaction(BIR, pIC))) +
+
+  facet_wrap(~ interaction(BIR, pIC)) +
+  
+  stat_summary(fun = "mean", geom = "col",
+               width = 0.33, alpha = 0.33) +
+  
+  stat_summary(fun.data = "mean_se", geom = "errorbar",
+               width = 0.2, size = 0.5) +
+  
+  geom_jitter(aes(color = ID),
+              height = 0.1,
+              width = 0.1) +
+  
+  geom_hline(yintercept = 1) +
+    
+  scale_fill_manual(values = c("dodgerblue", "green", "orange"))+
+  
+  coord_cartesian(ylim = c(0, 20)) +
+  
+  ggtitle("rewards during stage0") +
+  ylab("Reward #") +
+  xlab("Port location") +
+  
+  theme_classic()
+
+
+```
