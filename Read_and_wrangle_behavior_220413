@@ -1,5 +1,5 @@
 ---
-  title: "MIA read in training (habituation)"
+  title: "Read in animal training data"
 output:
   html_document:
   df_print: paged
@@ -7,9 +7,10 @@ html_notebook:
   fig_height: 8
 ---
 
-Reading in training
+Reading in and wrangle data into tidy format
   
 CURRENT AS OF:
+
 22-04-13
 
 
